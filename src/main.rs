@@ -29,25 +29,16 @@ fn handle_connection(mut stream: TcpStream) {
     let reader = BufReader::new(&mut stream);
     let mut writer = BufWriter::new(stream_clone);
 
-    let http_request: Vec<_> = reader
-        .lines()
-        .map(|result| result.unwrap())
-        .take_while(|line| line.is_empty())
-        .collect();
+    let request_line = reader.lines().next().unwrap().unwrap();
 
-    let response = "HTTP/1.1 200 OK\r\n\r\n";
+    println!("Request line: {:#?}", request_line);
 
-    println!("Request: {:#?}", http_request);
+    if request_line == "GET / HTTP/1.1" {
+        let response = "HTTP/1.1 200 OK\r\n\r\n";
 
-    writer.write_all(response.as_bytes()).unwrap();
-
-    // loop {
-    //     let mut s = String::new();
-
-    //     reader.read_line(&mut s).unwrap();
-
-    //     writer.write_all(response.as_bytes()).unwrap();
-
-    //     writer.flush().unwrap();
-    // }
+        writer.write_all(response.as_bytes()).unwrap();
+    } else {
+        let response = "HTTP/1.1 404 Not Found\r\n\r\n";
+        writer.write_all(response.as_bytes()).unwrap();
+    }
 }
