@@ -23,21 +23,31 @@ fn main() -> std::io::Result<()> {
     Ok(())
 }
 
-fn handle_connection(stream: TcpStream) {
+fn handle_connection(mut stream: TcpStream) {
     let stream_clone = stream.try_clone().unwrap();
 
-    let mut reader = BufReader::new(stream);
+    let reader = BufReader::new(&mut stream);
     let mut writer = BufWriter::new(stream_clone);
 
-    loop {
-        let mut s = String::new();
+    let http_request: Vec<_> = reader
+        .lines()
+        .map(|result| result.unwrap())
+        .take_while(|line| line.is_empty())
+        .collect();
 
-        reader.read_line(&mut s).unwrap();
+    let response = "HTTP/1.1 200 OK\r\n\r\n";
 
-        writer
-            .write_all("HTTP/1.1 200 OK\r\n\r\n".as_bytes())
-            .unwrap();
+    println!("Request: {:#?}", http_request);
 
-        writer.flush().unwrap();
-    }
+    writer.write_all(response.as_bytes()).unwrap();
+
+    // loop {
+    //     let mut s = String::new();
+
+    //     reader.read_line(&mut s).unwrap();
+
+    //     writer.write_all(response.as_bytes()).unwrap();
+
+    //     writer.flush().unwrap();
+    // }
 }
